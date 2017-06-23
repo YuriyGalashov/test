@@ -2,8 +2,12 @@ package com.sqa.yg.helpers;
 
 import java.util.Scanner;
 
+import com.sqa.yg.helpers.exceptions.CharNotValidException;
 import com.sqa.yg.helpers.exceptions.InvalidBooleanResponse;
 import com.sqa.yg.helpers.exceptions.InvalidCharResponseLength;
+import com.sqa.yg.helpers.exceptions.OutOfRangeException;
+import com.sqa.yg.helpers.exceptions.OverMaxException;
+import com.sqa.yg.helpers.exceptions.UnderMinException;
 
 public class AppBasics {
 
@@ -69,6 +73,36 @@ public class AppBasics {
 		return input.charAt(0);
 	}
 
+	public static char requestChar(String question, String charErrorResponse, char... possibleChars) {
+		boolean isInvalid = true;
+		String input = "";
+		boolean validChar = false;
+		while (isInvalid) {
+			System.out.println(question + " ");
+			input = scanner.nextLine();
+			try {
+				if (input.length() != 1) {
+					throw new InvalidCharResponseLength();
+				}
+				for (char c : possibleChars) {
+					if (Character.toUpperCase(c) == input.toUpperCase().charAt(0)) {
+						validChar = true;
+					}
+				}
+				if (!validChar) {
+					throw new CharNotValidException();
+				}
+				isInvalid = false;
+			} catch (InvalidCharResponseLength e) {
+				// TODO Auto-generated catch block
+				System.out.println("You must enter only one character [" + input + "]");
+			} catch (CharNotValidException e) {
+				System.out.println(charErrorResponse + " [" + input + "]");
+			}
+		}
+		return input.charAt(0);
+	}
+
 	public static double requestDouble(String question) {
 		double value = 0;
 		boolean isInvalid = true;
@@ -102,19 +136,7 @@ public class AppBasics {
 	}
 
 	public static int requestInt(String question) {
-		int value = 0;
-		boolean isInvalid = true;
-		while (isInvalid) {
-			System.out.print(question + " ");
-			String input = scanner.nextLine();
-			try {
-				value = Integer.parseInt(input.trim());
-				isInvalid = false;
-			} catch (NumberFormatException e) {
-				System.out.println("You have not entered a correct formatted number [" + input + "]");
-			}
-		}
-		return value;
+		return requestIntWithinRange(question, 0, 0, "");
 	}
 
 	public static long requestLong(String question) {
@@ -155,5 +177,31 @@ public class AppBasics {
 		System.out.print(question + " ");
 		String input = scanner.nextLine();
 		return input.trim();
+	}
+
+	public static int requestIntWithinRange(String question, int min, int max, String rangeErrorResponse) {
+		int value = 0;
+		boolean isInvalid = true;
+		while (isInvalid) {
+			System.out.print(question + " ");
+			String input = scanner.nextLine();
+			try {
+				value = Integer.parseInt(input.trim());
+				if (min != 0 && max != 0) {
+					if (value < min) {
+						throw new UnderMinException();
+					}
+					if (value > max) {
+						throw new OverMaxException();
+					}
+				}
+				isInvalid = false;
+			} catch (NumberFormatException e) {
+				System.out.println("You have entered an incorrect formatted number [" + input + "]");
+			} catch (OutOfRangeException e) {
+				System.out.println(rangeErrorResponse + " [" + input + "]");
+			}
+		}
+		return value;
 	}
 }
